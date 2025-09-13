@@ -2,57 +2,61 @@
 <html>
 <head>
   <title>Send Location to Webhook</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    #status { margin-top: 20px; font-size: 1.1em; color: green; }
+  </style>
 </head>
 <body>
-  <h2>Sending your location...</h2>
+  <h2>📍 Send Location to Webhook</h2>
+  <button onclick="getLocation()">Send My Location</button>
+  <div id="status"></div>
 
   <script>
-    const webhookURL = "https://webhook.site/7e39f4ac-dd6b-4051-9ab3-64561a9300e9"; 
-
-    function sendLocation(lat, lon) {
-      fetch(webhookURL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          latitude: lat,
-          longitude: lon,
-          timestamp: new Date().toISOString(),
-          userAgent: navigator.userAgent
-        })
-      })
-      .then(() => {
-        document.body.innerHTML += "<p>Location sent!</p>";
-      })
-      .catch(() => {
-        document.body.innerHTML += "<p>Failed to send location.</p>";
-      });
-    }
+    const webhookURL = "https://webhook.site/d3253447-4816-4a4c-a0c2-9cd53f5dd6af"; // Replace with actual URL
 
     function getLocation() {
+      const status = document.getElementById("status");
+      status.innerHTML = "⏳ Getting your location...";
+
       if ("geolocation" in navigator) {
         navigator.geolocation.getCurrentPosition(
-          pos => {
-            const lat = pos.coords.latitude;
-            const lon = pos.coords.longitude;
-            sendLocation(lat, lon);
+          (position) => {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+
+            fetch(webhookURL, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                latitude: lat,
+                longitude: lon,
+                timestamp: new Date().toISOString(),
+                userAgent: navigator.userAgent
+              })
+            })
+            .then(response => {
+              if (response.ok) {
+                status.innerHTML = `✅ Sent!<br>Lat: ${lat}<br>Lon: ${lon}`;
+              } else {
+                status.innerHTML = "❌ Server error.";
+              }
+            })
+            .catch(err => {
+              console.error(err);
+              status.innerHTML = "❌ Failed to send location (fetch error).";
+            });
           },
-          err => {
-            document.body.innerHTML += "<p>Location access denied.</p>";
+          (error) => {
+            status.innerHTML = "❌ Location access denied or failed.";
+            console.error(error);
           },
-          {
-            enableHighAccuracy: true,
-            timeout: 5000,
-            maximumAge: 0
-          }
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
         );
       } else {
-        document.body.innerHTML += "<p>Geolocation not supported.</p>";
+        status.innerHTML = "❌ Geolocation not supported.";
       }
     }
-
-    getLocation();
   </script>
 </body>
 </html>
