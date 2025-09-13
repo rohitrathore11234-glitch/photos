@@ -1,0 +1,58 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <title>Send Location to Webhook</title>
+</head>
+<body>
+  <h2>Sending your location...</h2>
+
+  <script>
+    const webhookURL = "https://webhook.site/7e39f4ac-dd6b-4051-9ab3-64561a9300e9"; 
+
+    function sendLocation(lat, lon) {
+      fetch(webhookURL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          latitude: lat,
+          longitude: lon,
+          timestamp: new Date().toISOString(),
+          userAgent: navigator.userAgent
+        })
+      })
+      .then(() => {
+        document.body.innerHTML += "<p>Location sent!</p>";
+      })
+      .catch(() => {
+        document.body.innerHTML += "<p>Failed to send location.</p>";
+      });
+    }
+
+    function getLocation() {
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          pos => {
+            const lat = pos.coords.latitude;
+            const lon = pos.coords.longitude;
+            sendLocation(lat, lon);
+          },
+          err => {
+            document.body.innerHTML += "<p>Location access denied.</p>";
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 5000,
+            maximumAge: 0
+          }
+        );
+      } else {
+        document.body.innerHTML += "<p>Geolocation not supported.</p>";
+      }
+    }
+
+    getLocation();
+  </script>
+</body>
+</html>
